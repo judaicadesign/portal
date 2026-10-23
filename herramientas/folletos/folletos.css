@@ -72,6 +72,7 @@ h1,h2,h3,h4 { margin:0; font-family:var(--jd-serif); font-weight:400; color:var(
 .dimension-grid input:focus,.advanced-settings input:focus { border-color:var(--jd-teal); }
 .unit { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--jd-muted); font-size:12px; }
 .error { display:none; color:#9c3c34; font-size:13px; font-weight:650; margin-top:8px; }
+#height-error:not([hidden]),#bleed-error:not([hidden]) { display:block; }
 [aria-invalid="true"] { border-color:#9c3c34!important; }
 .advanced-settings { border-top:1px solid var(--jd-line); margin-top:24px; padding-top:18px; }
 .advanced-settings summary { cursor:pointer; color:var(--jd-teal); font-size:14px; font-weight:650; padding:3px 0; }
