@@ -48,7 +48,16 @@
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Tipo de plegado</legend>
+          <legend>¿Cómo se lee?</legend>
+          <div class="mode-switch reading-switch" role="group" aria-label="Sentido de lectura">
+            <button id="hebrewBtn" class="active" type="button" aria-pressed="true">Hebreo<small>Derecha a izquierda</small></button>
+            <button id="spanishBtn" type="button" aria-pressed="false">Español<small>Izquierda a derecha</small></button>
+          </div>
+          <p class="field-explainer">El orden de tapa, contratapa e interiores cambia automáticamente.</p>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>¿Cómo se dobla?</legend>
           <div class="mode-switch fold-switch" role="group" aria-label="Tipo de plegado">
             <button id="rollBtn" class="active" type="button" aria-pressed="true">
               <svg viewBox="0 0 90 40" aria-hidden="true"><path d="M8 33H80V8H22v16h45v-7H36"/></svg>
@@ -66,15 +75,6 @@
           <p id="gate-help" class="field-explainer" hidden>La ventana con cierre central necesita cuatro paneles.</p>
           <p id="fold-description" class="fold-description"></p>
           <p id="selection-status" class="field-explainer" role="status" aria-live="polite"></p>
-        </fieldset>
-
-        <fieldset class="field-group">
-          <legend>Sentido de lectura</legend>
-          <div class="mode-switch reading-switch" role="group" aria-label="Sentido de lectura">
-            <button id="hebrewBtn" class="active" type="button" aria-pressed="true">Hebreo<small>Derecha a izquierda</small></button>
-            <button id="spanishBtn" type="button" aria-pressed="false">Español<small>Izquierda a derecha</small></button>
-          </div>
-          <p class="field-explainer">El orden de tapa, contratapa e interiores cambia automáticamente.</p>
         </fieldset>
 
         <fieldset class="field-group">
