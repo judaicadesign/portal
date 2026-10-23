@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "test": "node tests/calculator.cjs && node tests/ui.cjs && node tests/booklet.cjs && node tests/booklet-ui.cjs"
+    "test": "node tests/calculator.cjs && node tests/ui.cjs && node tests/folletos-export.cjs && node tests/booklet.cjs && node tests/booklet-ui.cjs"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",
