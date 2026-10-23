@@ -10,7 +10,7 @@
     if (!content.getClientRects().length) return;
     // Measure content, not the iframe viewport: this also allows shrinking.
     const bodyStyle = getComputedStyle(document.body);
-    const height = Math.ceil(content.getBoundingClientRect().height + parseFloat(bodyStyle.paddingTop || 0) + parseFloat(bodyStyle.paddingBottom || 0)) + 4;
+    const height = Math.ceil(content.getBoundingClientRect().bottom + window.scrollY + parseFloat(bodyStyle.paddingBottom || 0)) + 4;
     if (height < 100 || height === lastHeight) return;
     lastHeight = height;
     window.parent.postMessage({ type: 'jd-tool-height', tool: document.documentElement.dataset.jdTool, height }, '*');
