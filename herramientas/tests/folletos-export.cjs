@@ -51,7 +51,7 @@ input('measure','1');
 assert.equal($('copy-summary').disabled,true);
 input('measure','135');
 assert.equal($('copy-summary').disabled,false);
-assert.match($('action-feedback').textContent,/Revisá|descargada/);
+assert.equal($('action-feedback').textContent,'');
 
 dom.window.close();
 console.log('OK: leaflet export integration, file variants, height / bleed validation and change recovery.');
