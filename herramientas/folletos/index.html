@@ -1,491 +1,198 @@
 <!doctype html>
 <html lang="es" data-jd-tool="leaflets">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Medidas, paneles y guías para trípticos y cuadrípticos: envolvente, acordeón y ventana, con lectura hebrea o española." />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculá anchos, guías y distribución de caras para trípticos y cuadrípticos. Plegado envolvente, acordeón o ventana, en hebreo o español.">
   <title>Calculadora de folletos · Judaica Design®</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Condensed&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../pdf/pdf.css?v=portal-20261023"><link rel="stylesheet" href="https://use.typekit.net/ydp7axr.css?v=20261008-bold">
-  <style>
-    :root{
-      --teal:#245c5d;
-      --teal-dark:#244c4d;
-      --teal-soft:#EAF4F3;
-      --gold:#c5a36d;
-      --gold-soft:#F8F0E1;
-      --ink:#193234;
-      --muted:#716b62;
-      --line:#e2dacb;
-      --paper:#f5f2eb;
-      --white:#fffdf8;
-
-      --serif:"Libre Caslon Condensed",Georgia,serif;
-      --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-    }
-
-    *{ box-sizing:border-box; }
-
-    html{ -webkit-text-size-adjust:100%; }
-
-    body{
-      margin:0;
-      min-height:100vh;
-      background:
-        var(--paper);
-      color:var(--ink);
-      font-family:var(--sans);
-      padding:32px 16px;
-    }
-
-    .wrap{
-      width:min(920px,100%);
-      margin:0 auto;
-    }
-
-    .header{
-      text-align:left;
-      padding-bottom:22px;
-      border-bottom:1px solid var(--line);
-      margin-bottom:24px;
-    }
-
-    .eyebrow{
-      color:#937342;
-      font-size:10px;
-      font-weight:700;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      margin-bottom:0;
-    }
-
-    h1{
-      margin:6px 0 0;
-      color:var(--teal);
-      font-family:var(--serif);
-      font-weight:400;
-      font-stretch:condensed;
-      font-size:clamp(30px,3.5vw,44px);
-      line-height:1.08;
-      letter-spacing:normal;
-    }
-
-    .subtitle{
-      max-width:690px;
-      margin:12px 0 0;
-      color:var(--muted);
-      font-size:15px;
-      line-height:1.55;
-    }
-
-    .card{
-      background:var(--white);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:26px;
-      box-shadow:0 18px 48px rgba(15,91,93,.08);
-    }
-
-    .section-label{
-      margin:0 0 10px;
-      font-family:var(--serif);
-      font-size:26px;
-      font-weight:400;
-      line-height:1.2;
-      text-align:left;
-      color:var(--teal);
-    }
-
-    .mode-switch{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      padding:6px;
-      background:var(--teal-soft);
-      border-radius:14px;
-      margin-bottom:22px;
-    }
-
-    .mode-switch button{
-      border:0;
-      border-radius:10px;
-      min-height:48px;
-      padding:10px 14px;
-      font:600 14px/1.2 var(--sans);
-      color:var(--teal-dark);
-      background:transparent;
-      cursor:pointer;
-      transition:.15s ease;
-    }
-
-    .mode-switch button.active{
-      background:var(--white);
-      color:var(--teal);
-      box-shadow:0 4px 14px rgba(15,91,93,.10);
-    }
-
-    .mode-switch button:focus-visible,
-    input:focus-visible{
-      outline:3px solid rgba(198,154,75,.35);
-      outline-offset:2px;
-    }
-
-    .calc-grid{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) minmax(240px,.7fr);
-      gap:16px;
-      align-items:end;
-    }
-
-    label{
-      display:block;
-      font-weight:600;
-      font-size:14px;
-      margin-bottom:8px;
-      color:var(--ink);
-    }
-
-    .input-wrap{
-      position:relative;
-    }
-
-    input{
-      width:100%;
-      min-height:56px;
-      border:1px solid var(--line);
-      border-radius:13px;
-      padding:0 58px 0 15px;
-      font:400 20px var(--sans);
-      color:var(--ink);
-      background:#fff;
-      outline:none;
-    }
-
-    input:focus{ border-color:var(--gold); }
-
-    .unit{
-      position:absolute;
-      right:16px;
-      top:50%;
-      transform:translateY(-50%);
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .helper{
-      margin-top:7px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.4;
-    }
-
-    .result-main{
-      min-height:86px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      border:1px solid rgba(198,154,75,.34);
-      border-radius:14px;
-      padding:15px 18px;
-      background:var(--gold-soft);
-    }
-
-    .result-main .small{
-      color:#7D6740;
-      font-size:11px;
-      font-weight:700;
-      letter-spacing:.1em;
-      text-transform:uppercase;
-    }
-
-    .result-main .big{
-      margin-top:4px;
-      font-family:var(--serif);
-      font-size:34px;
-      line-height:1;
-      color:var(--teal-dark);
-      font-weight:700;
-    }
-
-    .diagram-title{
-      margin:28px 0 11px;
-      font-family:var(--serif);
-      color:var(--teal);
-      font-size:26px;
-      font-weight:400;
-      line-height:1.2;
-      text-align:left;
-    }
-
-    .diagram{
-      display:grid;
-      grid-template-columns:1fr 1fr .985fr .97fr;
-      gap:6px;
-      align-items:stretch;
-    }
-
-    .panel{
-      position:relative;
-      min-width:0;
-      min-height:135px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      text-align:center;
-      padding:16px 9px;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
-      overflow:hidden;
-    }
-
-    .panel::before{
-      content:"";
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      height:4px;
-      background:var(--teal);
-    }
-
-    .panel.flap{
-      background:#FFFCF7;
-      border-style:dashed;
-    }
-
-    .panel.flap::before{ background:var(--gold); }
-
-    .panel-name{
-      position:relative;
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.25;
-    }
-
-    .panel-value{
-      position:relative;
-      font-family:var(--serif);
-      font-size:28px;
-      line-height:1;
-      color:var(--ink);
-      font-weight:700;
-    }
-
-    .panel-rule{
-      position:relative;
-      font-size:11px;
-      color:var(--muted);
-    }
-
-    .summary{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:18px;
-      align-items:center;
-      border-top:1px solid var(--line);
-      padding-top:18px;
-    }
-
-    .formula-label{
-      font-size:13px;
-      color:var(--muted);
-      margin-bottom:3px;
-    }
-
-    .formula{
-      font-size:15px;
-      font-weight:600;
-      color:var(--teal-dark);
-      word-break:break-word;
-    }
-
-    .total-chip{
-      border-radius:999px;
-      padding:10px 15px;
-      background:var(--teal);
-      color:#fff;
-      font-weight:700;
-      white-space:nowrap;
-    }
-
-    .note{
-      margin-top:18px;
-      border-left:4px solid var(--gold);
-      border-radius:9px;
-      padding:12px 14px;
-      background:#FFF9EE;
-      color:#6D5A36;
-      font-size:12px;
-      line-height:1.55;
-    }
-
-    .error{
-      display:none;
-      margin-top:8px;
-      color:#9F2D2D;
-      font-size:12px;
-      font-weight:600;
-    }
-
-    footer{
-      margin-top:16px;
-      text-align:center;
-      color:var(--muted);
-      font-size:11px;
-    }
-
-    .mode-switch small{display:block;font-weight:400;font-size:11px;margin-top:5px;line-height:1.4}
-    .fold-switch{grid-template-columns:repeat(3,minmax(0,1fr))}.fold-switch button{padding:14px 8px}
-    .fold-switch svg{display:block;width:70px;height:35px;margin:0 auto 10px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    button:disabled{opacity:.4;cursor:default}.fold-description{font-size:13px;line-height:1.6;color:var(--muted);margin:-8px 0 22px;min-height:40px}
-    .layout-tip{border-radius:10px;background:var(--teal-soft);color:var(--teal-dark);font-size:13px;line-height:1.6;padding:14px 16px}
-    .face-title{font:400 23px/1.2 var(--serif);color:var(--teal);margin:22px 0 10px}
-    .panel.front{background:var(--teal-soft);border-color:#92b9b6}.panel.back{background:var(--gold-soft);border-color:#d6bc8d}.panel.back::before{background:var(--gold)}
-    .panel-id{font-size:10px;color:var(--muted);margin-bottom:9px;letter-spacing:.03em}.panel-name{font-weight:600;min-height:32px;color:var(--ink)}.panel-value{margin:9px 0;font-size:27px;white-space:nowrap}.panel-rule{font-size:10px}
-    .guides{font-size:12px;color:var(--teal);font-weight:600;line-height:1.5;margin:10px 0 20px}.reverse-note{color:var(--muted);font-size:12px;line-height:1.5;border-top:1px solid var(--line);padding-top:16px}
-    details{margin-top:20px}summary{cursor:pointer;color:var(--teal);font-size:13px;font-weight:600;margin-bottom:14px}details .input-wrap{max-width:200px}
-    .sources{font-size:12px;line-height:1.6}.sources a{color:var(--teal)}.sources ul{padding-left:20px}
-    [hidden]{display:none!important}
-    @media (max-width:900px){
-      h1{font-size:34px;}
-      .section-label,.diagram-title{font-size:24px;}
-      .header{padding-bottom:18px;margin-bottom:20px;}
-    }
-
-    @media (max-width:700px){
-      body{ padding:20px 12px; }
-      .card{ padding:18px; border-radius:18px; }
-      .calc-grid{ grid-template-columns:1fr; }
-      .diagram{ gap:4px; }
-      .panel{padding:12px 3px;min-height:125px;}
-      .panel-name{font-size:10px;}
-      .panel-value{font-size:23px;}
-      .panel-rule{font-size:10px;}
-      .summary{ grid-template-columns:1fr; }
-      .total-chip{ justify-self:start; }
-      .mode-switch{ grid-template-columns:1fr 1fr; }
-      .fold-switch{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px}
-      .mode-switch button{font-size:12px;padding:10px 8px;min-width:0}.mode-switch small{font-size:10px}
-      .fold-switch svg{width:55px;height:30px}.panel-value{font-size:20px}.panel-name{font-size:10px;overflow-wrap:anywhere;min-height:40px}.panel-id{font-size:9px}.panel-rule{font-size:9px}
-      .result-main .big{font-size:32px}.face-title{font-size:22px}
-    }
-  
-    body{padding:0;font-family:"aktiv-grotesk-hebrew",Arial,sans-serif}
-    .wrap{width:auto;max-width:1220px;padding:40px 24px 64px}
-    .tool-header{background:#234c4e;color:#fff;padding:20px max(24px,calc((100vw - 1220px)/2));display:flex;justify-content:space-between;align-items:center;gap:20px}
-    .tool-header a{display:flex;align-items:center;gap:24px;color:inherit;text-decoration:none}
-    .tool-header img{width:125px;height:70px;object-fit:contain}
-    .tool-header a span{font-family:var(--serif);font-size:28px}
-    .tool-header .header-note{font-size:13px}
-    .header{background:transparent;color:var(--ink);display:block;padding:0 0 24px;margin-bottom:28px}
-    .header h1{font-size:clamp(42px,6.5vw,76px);line-height:1.05;font-weight:400;color:#234c4e}
-    .header .subtitle{font-size:18px;line-height:1.6;max-width:900px}
-    @media(max-width:600px){.tool-header{padding:16px 20px}.tool-header a{gap:16px}.tool-header img{width:80px;height:52px}.tool-header a span{font-size:20px}.tool-header .header-note{display:none}.wrap{padding:28px 16px 48px}}
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Condensed:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.typekit.net/ydp7axr.css?v=20261008-bold">
+  <link rel="stylesheet" href="../pdf/pdf.css?v=portal-20261023">
+  <link rel="stylesheet" href="./folletos.css?v=20261023-estudio">
 </head>
-
 <body>
-<header class="tool-header"><a href="../"><img src="../assets/jd-logo-white.svg" alt="Judaica Design"><span>Herramientas para imprimir</span></a><span class="header-note">Gratis · Sin cuenta</span></header>
+  <header class="site-header">
+    <a class="brand" href="../" aria-label="Judaica Design · todas las herramientas">
+      <img src="../assets/jd-logo-white.svg" alt="Judaica Design®">
+      <span>Herramientas para imprimir</span>
+    </a>
+    <span class="header-note">Gratis · Sin cuenta</span>
+  </header>
+
   <main class="wrap">
-    <header class="header">
-      <div class="eyebrow">Calculadora de plegado</div>
-      <h1>Calculadora de folletos</h1>
-      <p class="subtitle">
-        Elegí cómo se lee y se dobla. Calculá las medidas y ubicá tapa, contratapa e interiores en las dos caras del archivo.
-      </p>
-    </header>
+    <div class="intro-header">
+      <div class="intro-copy">
+        <a class="breadcrumb" href="../">← Todas las herramientas</a>
+        <h1>Calculadora de folletos</h1>
+        <p>Elegí el plegado y las medidas. Te mostramos dónde va cada panel en las dos caras, con las guías para preparar tu archivo.</p>
+      </div>
+      <div class="intro-aside">
+        <strong>Del diseño al papel.</strong>
+        Trípticos y cuadrípticos, con apertura hebrea o española.
+      </div>
+    </div>
 
-    <section class="card">
-      <h2 class="section-label">1 · ¿Cómo se lee?</h2>
-      <div class="mode-switch reading-switch" role="group" aria-label="Sentido de lectura">
-        <button id="hebrewBtn" class="active" type="button" aria-pressed="true">Hebreo <small>De derecha a izquierda</small></button>
-        <button id="spanishBtn" type="button" aria-pressed="false">Español <small>De izquierda a derecha</small></button>
-      </div>
-      <h2 class="section-label">2 · Tipo de folleto</h2>
-      <div class="mode-switch" role="group" aria-label="Tipo de folleto">
-        <button id="triBtn" type="button" aria-pressed="false">Tríptico · 3 paneles</button>
-        <button id="quadBtn" class="active" type="button" aria-pressed="true">Cuadríptico · 4 paneles</button>
-      </div>
-      <h2 class="section-label">3 · ¿Cómo se dobla?</h2>
-      <div class="mode-switch fold-switch" role="group" aria-label="Tipo de plegado">
-        <button id="rollBtn" class="active" type="button" aria-pressed="true"><svg viewBox="0 0 90 40" aria-hidden="true"><path d="M8 33H80V8H22v16h45v-7H36"/></svg><span>Envolvente</span><small>Solapas hacia adentro</small></button>
-        <button id="accordionBtn" type="button" aria-pressed="false"><svg viewBox="0 0 90 40" aria-hidden="true"><path d="m6 31 24-22 27 22 27-22"/></svg><span id="accordion-name">Acordeón · zigzag</span><small>Pliegues alternados</small></button>
-        <button id="gateBtn" type="button" aria-pressed="false"><svg viewBox="0 0 90 40" aria-hidden="true"><path d="M45 33H8V9h30m7 24h37V9H52M45 33V19"/></svg><span>Ventana cerrada</span><small>Doble puerta + cierre al medio</small></button>
-      </div>
-      <p id="gate-help" class="helper" hidden>Ventana con cierre central: disponible en cuadrípticos.</p>
-      <p id="fold-description" class="fold-description"></p>
-      <p id="selection-status" class="helper" role="status" aria-live="polite"></p>
-      <h2 class="section-label">4 · ¿Qué medida conocés?</h2>
+    <div class="workspace">
+      <section class="settings-card" aria-labelledby="settings-title">
+        <h2 id="settings-title">Configurá tu folleto</h2>
+        <p class="section-lede">Los resultados se actualizan al instante.</p>
 
-      <div class="mode-switch" role="group" aria-label="Seleccionar tipo de medida">
-        <button id="closedBtn" class="active" type="button" aria-pressed="true">
-          Tamaño cerrado
-        </button>
-        <button id="openBtn" type="button" aria-pressed="false">
-          Tamaño abierto
-        </button>
-      </div>
-
-      <div class="calc-grid">
-        <div>
-          <label id="inputLabel" for="measure">Ancho cerrado (tapa / contratapa)</label>
-          <div class="input-wrap">
-            <input id="measure" type="number" inputmode="decimal" min="5" step="0.1" value="135" />
-            <span class="unit">mm</span>
+        <fieldset class="field-group">
+          <legend>Tipo de folleto</legend>
+          <div class="mode-switch" role="group" aria-label="Tipo de folleto">
+            <button id="triBtn" type="button" aria-pressed="false">Tríptico<small>3 paneles</small></button>
+            <button id="quadBtn" class="active" type="button" aria-pressed="true">Cuadríptico<small>4 paneles</small></button>
           </div>
-          <div class="helper" id="helper">
-            X corresponde al ancho final de la tapa y la contratapa.
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Tipo de plegado</legend>
+          <div class="mode-switch fold-switch" role="group" aria-label="Tipo de plegado">
+            <button id="rollBtn" class="active" type="button" aria-pressed="true">
+              <svg viewBox="0 0 90 40" aria-hidden="true"><path d="M8 33H80V8H22v16h45v-7H36"/></svg>
+              <span>Envolvente</span><small>Solapas internas</small>
+            </button>
+            <button id="accordionBtn" type="button" aria-pressed="false">
+              <svg viewBox="0 0 90 40" aria-hidden="true"><path d="m6 31 24-22 27 22 27-22"/></svg>
+              <span id="accordion-name">Acordeón</span><small>Pliegues alternados</small>
+            </button>
+            <button id="gateBtn" type="button" aria-pressed="false">
+              <svg viewBox="0 0 90 40" aria-hidden="true"><path d="M45 33H8V9h30m7 24h37V9H52M45 33V19"/></svg>
+              <span>Ventana</span><small>Doble cierre</small>
+            </button>
           </div>
-          <div class="error" id="error">Ingresá una medida válida.</div>
-        </div>
+          <p id="gate-help" class="field-explainer" hidden>La ventana con cierre central necesita cuatro paneles.</p>
+          <p id="fold-description" class="fold-description"></p>
+          <p id="selection-status" class="field-explainer" role="status" aria-live="polite"></p>
+        </fieldset>
 
-        <div class="result-main" aria-live="polite">
-          <div class="small" id="resultLabel">Ancho total abierto</div>
-          <div class="big" id="mainResult">534 mm</div>
-        </div>
-      </div>
+        <fieldset class="field-group">
+          <legend>Sentido de lectura</legend>
+          <div class="mode-switch reading-switch" role="group" aria-label="Sentido de lectura">
+            <button id="hebrewBtn" class="active" type="button" aria-pressed="true">Hebreo<small>Derecha a izquierda</small></button>
+            <button id="spanishBtn" type="button" aria-pressed="false">Español<small>Izquierda a derecha</small></button>
+          </div>
+          <p class="field-explainer">El orden de tapa, contratapa e interiores cambia automáticamente.</p>
+        </fieldset>
 
-      <details id="compensation-settings"><summary>Ajuste de imprenta · reducción de solapas</summary><label for="compensation">Reducción (mm)</label><div class="input-wrap"><input id="compensation" type="number" inputmode="decimal" min="0" max="10" step="0.1" value="2"><span class="unit">mm</span></div><p class="helper">Valor orientativo de 2 mm. Ajustalo si tu imprenta indica otra tolerancia. En envolvente se acumula por paso; en ventana se aplica a cada puerta.</p></details>
-      <section class="layout-result" aria-label="Paneles y guías del archivo" aria-live="polite">
-      <h3 class="diagram-title">Así armás las dos caras</h3><p class="helper" id="orientation"></p>
-      <p class="layout-tip" id="layout-tip"></p>
-      <h4 class="face-title" id="front-title">Cara A · exterior</h4>
-      <div id="diagram" class="diagram" dir="ltr" aria-label="Paneles de cara A"></div>
-      <p id="guides-front" class="guides"></p>
-      <div class="reverse-note">↔ Al dar vuelta la hoja, el orden físico se invierte. Los números identifican el mismo panel en ambas caras.</div>
-      <h4 class="face-title" id="back-title">Cara B · interior</h4>
-      <div id="diagram-back" class="diagram" dir="ltr" aria-label="Paneles de cara B"></div>
-      <p id="guides-back" class="guides"></p>
-      <p class="helper">Esquema proporcional orientativo: no utilizar como plantilla de corte. Cada cara corresponde a una página del archivo abierto. Valores redondeados a 2 decimales.</p>
+        <fieldset class="field-group">
+          <legend>Medidas finales</legend>
+          <div class="mode-switch measure-mode" role="group" aria-label="Seleccionar tipo de medida">
+            <button id="closedBtn" class="active" type="button" aria-pressed="true">Conozco el cerrado</button>
+            <button id="openBtn" type="button" aria-pressed="false">Conozco el abierto</button>
+          </div>
+          <div class="dimension-grid">
+            <div>
+              <label id="inputLabel" for="measure">Ancho cerrado (tapa)</label>
+              <div class="input-wrap">
+                <input id="measure" type="number" inputmode="decimal" min="0.01" step="0.1" value="135" aria-describedby="helper error">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+            <div>
+              <label for="height">Alto final</label>
+              <div class="input-wrap">
+                <input id="height" type="number" inputmode="decimal" min="10" max="1500" step="0.1" value="210" aria-describedby="height-helper">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+          </div>
+          <p class="helper" id="helper">X es el ancho final de la tapa y contratapa, sin demasía.</p>
+          <p class="helper" id="height-helper">El alto se usa para preparar los planos descargables.</p>
+          <p class="error" id="error" role="alert">Ingresá una medida válida.</p>
+          <p class="error" id="height-error" role="alert" hidden>Ingresá un alto entre 10 y 1500 mm.</p>
+        </fieldset>
+
+        <details id="compensation-settings" class="advanced-settings">
+          <summary>Opciones de imprenta · reducción de solapas</summary>
+          <label for="compensation">Reducción por paso</label>
+          <div class="input-wrap"><input id="compensation" type="number" inputmode="decimal" min="0" max="10" step="0.1" value="2"><span class="unit">mm</span></div>
+          <p>El valor orientativo es 2 mm. Confirmá la reducción según gramaje, hendido y terminación con tu imprenta.</p>
+        </details>
+
+        <details class="advanced-settings">
+          <summary>Opciones de imprenta · demasía para el SVG</summary>
+          <label for="bleed">Demasía por lado</label>
+          <div class="input-wrap"><input id="bleed" type="number" inputmode="decimal" min="0" max="10" step="0.5" value="3" aria-describedby="bleed-helper"><span class="unit">mm</span></div>
+          <p id="bleed-helper">Se agrega por fuera de la medida final en los SVG descargables. No modifica las medidas de los paneles.</p>
+          <p class="error" id="bleed-error" role="alert" hidden>Ingresá una demasía de 0 a 10 mm.</p>
+        </details>
       </section>
 
-      <div class="summary">
-        <div>
-          <div class="formula-label">Cálculo</div>
-          <div class="formula" id="formula">
-            135 + 135 + 133 + 131 = 534 mm
-          </div>
-        </div>
-        <div class="total-chip" id="closedChip">Cerrado: 135 mm</div>
-      </div>
+      <div class="results-column">
+        <div class="results-sticky">
+          <section class="readout" aria-label="Resultado principal" aria-live="polite">
+            <p class="readout-overline" id="resultLabel">Ancho total abierto</p>
+            <div class="result-main"><div class="big" id="mainResult">534 mm</div></div>
+            <div class="readout-footer">
+              <span id="closedChip">Cerrado: 135 mm</span>
+              <span id="summaryMeta">4 paneles · 210 mm de alto</span>
+            </div>
+          </section>
 
-      <div class="note" id="note">
-        Cálculo orientativo para cuadríptico envolvente con reducción progresiva de 2 mm:
-        X / X / X−2 / X−4. La tolerancia final puede variar según gramaje, plastificado,
-        hendido y criterio de la imprenta. Confirmar medidas antes de producción.
+          <div class="action-bar" aria-label="Acciones de resultado">
+            <button type="button" class="action-primary" id="copy-summary">Copiar medidas</button>
+            <button type="button" id="download-front" aria-label="Descargar archivo SVG de la cara A">SVG · Cara A</button>
+            <button type="button" id="download-back" aria-label="Descargar archivo SVG de la cara B">SVG · Cara B</button>
+          </div>
+          <p id="action-feedback" class="action-feedback" role="status" aria-live="polite"></p>
+
+          <section class="preview-card layout-result" aria-label="Paneles y guías del archivo" aria-live="polite">
+            <h2>Plano de plegado</h2>
+            <p class="preview-lede" id="orientation">Cada cara se muestra tal como se ve en el archivo.</p>
+            <p id="layout-tip" class="layout-tip"></p>
+
+            <div class="face-heading"><h3 id="front-title">Cara A · exterior</h3><span>Vista del archivo</span></div>
+            <div class="diagram-scroll" role="region" aria-label="Esquema de la cara A, deslizable horizontalmente" tabindex="0">
+              <div id="diagram" class="diagram" dir="ltr" aria-label="Paneles de cara A"></div>
+            </div>
+            <p id="guides-front" class="guides"></p>
+
+            <p class="reverse-note">Al dar vuelta la hoja, se invierte el orden físico. Los números identifican la misma posición de panel.</p>
+
+            <div class="face-heading"><h3 id="back-title">Cara B · interior</h3><span>Vista del archivo</span></div>
+            <div class="diagram-scroll" role="region" aria-label="Esquema de la cara B, deslizable horizontalmente" tabindex="0">
+              <div id="diagram-back" class="diagram" dir="ltr" aria-label="Paneles de cara B"></div>
+            </div>
+            <p id="guides-back" class="guides"></p>
+
+            <div class="formula-row">
+              <strong>Desglose del ancho abierto</strong>
+              <div class="formula" id="formula">135 + 135 + 133 + 131 = 534 mm</div>
+            </div>
+            <p class="field-explainer">Los esquemas son proporcionales. Las medidas están redondeadas a dos decimales, pero el cálculo no redondea los pasos intermedios.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <section class="details-strip" aria-label="Indicaciones para imprenta">
+      <div>
+        <h2>Antes de enviar a imprimir</h2>
+        <p id="note">Confirmá la tolerancia de plegado con tu imprenta.</p>
+      </div>
+      <div>
+        <h2>Sobre las guías SVG</h2>
+        <p>Los SVG tienen tamaño físico en milímetros y marcan paneles, cortes y pliegues. Son <strong>guías de maquetación</strong>, no archivos finales de impresión. Verificá el esquema, el sentido de apertura y la demasía antes de usarlo.</p>
       </div>
     </section>
 
-    <details class="sources"><summary>Referencias de plegado</summary><p>Distribuciones contrastadas con plantillas de imprenta. La lectura hebrea invierte horizontalmente las distribuciones occidentales. Ventana corresponde aquí al doble cierre, con dos puertas y un pliegue central.</p><ul><li><a href="https://www.hopkinsprinting.com/folding/" target="_blank" rel="noopener">Hopkins Printing · envolvente y ventana cerrada</a></li><li><a href="https://www.printpapatrade.com/templates/BROCHURE/8.5%20x%2011%20Z-Fold/trade_8.5%20x%2011%20Z_Fold.pdf" target="_blank" rel="noopener">PrintPapa · tríptico Z, ambas caras</a></li><li><a href="https://printgraphics.com.au/wp-content/uploads/2019/01/8pp-DL-Z-Fold.pdf" target="_blank" rel="noopener">Printgraphics · cuadríptico acordeón, ambas caras</a></li></ul></details>
-    <footer>Judaica Design® · Herramienta para maquetación</footer>
+    <details class="sources">
+      <summary>Referencias técnicas de plegado</summary>
+      <p>Distribuciones contrastadas con plantillas de imprenta. La lectura hebrea invierte horizontalmente las distribuciones occidentales. Ventana corresponde al doble cierre, con dos puertas y un pliegue central.</p>
+      <ul>
+        <li><a href="https://www.hopkinsprinting.com/folding/" target="_blank" rel="noopener noreferrer">Hopkins Printing · envolvente y ventana cerrada</a></li>
+        <li><a href="https://www.printpapatrade.com/templates/BROCHURE/8.5%20x%2011%20Z-Fold/trade_8.5%20x%2011_Z_Fold.pdf" target="_blank" rel="noopener noreferrer">PrintPapa · tríptico Z, ambas caras</a></li>
+        <li><a href="https://printgraphics.com.au/wp-content/uploads/2019/01/8pp-DL-Z-Fold.pdf" target="_blank" rel="noopener noreferrer">Printgraphics · cuadríptico acordeón, ambas caras</a></li>
+      </ul>
+    </details>
+    <footer class="tool-footer">Judaica Design® · Diseño con atención personal</footer>
   </main>
 
-  <script src="../calculator.js?v=20261021-plegados"></script>
-<script src="../jd-embed.js?v=20261023-header"></script>
+  <script src="../calculator.js?v=20261023-export-api"></script>
+  <script src="./folletos-ui.js?v=20261023-estudio"></script>
+  <script src="../jd-embed.js?v=20261023-header"></script>
 </body>
 </html>
-
-
