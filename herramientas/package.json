@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "node tests/calculator.cjs && node tests/ui.cjs && node tests/booklet.cjs && node tests/booklet-ui.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "pdf-lib": "^1.17.1"
+  }
+}
