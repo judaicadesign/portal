@@ -46,6 +46,7 @@
     const guides = panels => { let x = 0; return panels.slice(0, -1).map(p => (x += p.width)); };
     return { ...result, front, back, frontGuides: guides(front), backGuides: guides(back) };
   }
+  if (typeof window !== 'undefined') window.JDFolletos = Object.freeze({ calculate, buildLayout });
   if (typeof module !== 'undefined') module.exports = { calculate, buildLayout };
   if (typeof document === 'undefined') return;
   const $ = id => document.getElementById(id);
