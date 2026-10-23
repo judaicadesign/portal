@@ -1,0 +1,34 @@
+name: Verificar calculadora de folletos
+
+on:
+  pull_request:
+    paths:
+      - 'herramientas/**'
+      - '.github/workflows/folletos-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: herramientas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: herramientas/package-lock.json
+      - name: Instalar dependencias de pruebas
+        run: npm ci
+      - name: Validar sintaxis JavaScript
+        run: |
+          node --check calculator.js
+          node --check folletos/folletos-ui.js
+      - name: Probar formulas, vistas y exportación
+        run: npm test
