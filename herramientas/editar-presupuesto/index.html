@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Editar detalles de tapa · Judaica Design</title>
+<style>
+:root{color-scheme:light;--teal:#125e61;--sand:#f4f1e9;--ink:#272824;--line:#ded8ca}
+*{box-sizing:border-box}body{margin:0;background:var(--sand);font:14px Inter,system-ui,Arial;color:var(--ink)}
+header{background:var(--teal);color:#fff;padding:15px max(calc((100vw - 1080px)/2),24px);display:flex;align-items:center;gap:16px}
+header b{letter-spacing:.07em}header a{color:#fff;text-decoration:none}main{max-width:1080px;margin:30px auto;padding:0 16px}
+h1{font:normal 40px Georgia,serif;color:var(--teal);margin:0 0 10px}p{line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:18px;align-items:start}
+.card{padding:23px;border:1px solid var(--line);background:#fffdf9;border-radius:16px}
+label{display:block;font-size:12px;font-weight:650;margin:14px 0 4px}
+input{width:100%;min-height:42px;padding:9px 12px;border:1px solid #ccc6b7;border-radius:8px;font:inherit;color:var(--ink);background:#fff}
+input[type=file]{padding:9px;font-size:12px}button{padding:12px 17px;background:var(--teal);border:0;border-radius:8px;font:inherit;color:white;cursor:pointer;font-weight:650}
+button:disabled{opacity:.55;cursor:wait}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+#download{display:none;text-decoration:none;color:var(--teal);border:1px solid var(--teal);padding:11px 14px;border-radius:8px;font-weight:650}
+#status{margin-top:14px;min-height:20px;color:#615a4e}
+iframe{width:100%;height:min(76vh,790px);border:0;background:#f0eee8;border-radius:8px}small{color:#6e675b;line-height:1.45;display:block}
+.alert{padding:10px 12px;background:#f6f0e0;border-radius:8px;font-size:12px;margin-top:16px}
+@media(max-width:780px){.layout{grid-template-columns:1fr}h1{font-size:32px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head><body><header><b>JD · JUDAICA DESIGN</b><span>Editor puntual de presupuestos</span></header>
+<main><h1>Editar datos técnicos de tapa</h1>
+<p>Para presupuestos PDF de Birkón · Librito generados por Judaica Design. La edición se realiza <strong>en tu navegador</strong>; no se envía el archivo a ningún servidor. No modifica cantidades, importes ni opcionales.</p>
+<div class="layout"><section class="card">
+<label for="source">1. Elegí el presupuesto PDF</label><input id="source" type="file" accept="application/pdf,.pdf">
+<label for="paper">Papel de tapa</label><input id="paper" value="papel ilustración">
+<label for="gsm">Gramaje (g)</label><input id="gsm" type="number" min="50" max="600" value="220">
+<label for="finish">Terminación / laminado</label><input id="finish" value="autoadhesivo símil cuero">
+<label for="interior">Texto del interior</label><input id="interior" value="papel ilustración 115 grs. - Full color">
+<div class="actions"><button id="make" type="button">Generar PDF corregido</button><a id="download">Descargar PDF</a></div>
+<div id="status" role="status"></div>
+<div class="alert">El hot stamping sigue siendo un opcional. Esta herramienta solo cambia las líneas de la ficha técnica. Funciona con el formato A4 actual de Birkón · Librito; revisá la vista previa antes de enviar.</div>
+</section>
+<section class="card"><h2 style="margin-top:0;color:var(--teal);font-size:18px">Vista previa del resultado</h2><iframe id="preview" title="Vista previa del presupuesto"></iframe><small>Para conservar una copia, utilizá “Descargar PDF”.</small></section></div></main>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ let currentUrl=null;
+ function status(text){$('status').textContent=text}
+ function drawPair(page,regular,bold,y,label,value,size,fg,h){
+   const x=436.134;
+   const left=label?bold.widthOfTextAtSize(label,size):0;
+   const max=555-x-left;
+   let valSize=size;
+   while(regular.widthOfTextAtSize(value,valSize)>max && valSize>4.6) valSize-=0.1;
+   if(label)page.drawText(label,{x,y:h-y,font:bold,size,color:fg});
+   page.drawText(value,{x:x+left,y:h-y,font:regular,size:valSize,color:fg});
+ }
+ $('make').addEventListener('click',async function(){
+   const file=$('source').files[0]; if(!file){status('Primero elegí el PDF del presupuesto.');return}
+   if(!window.PDFLib){status('No se cargó la biblioteca PDF. Comprobá tu conexión y volvé a abrir la herramienta.');return}
+   $('make').disabled=true;$('download').style.display='none';status('Preparando la edición…');
+   try{
+     const doc=await PDFLib.PDFDocument.load(await file.arrayBuffer(),{ignoreEncryption:false});
+     const page=doc.getPage(0);const w=page.getWidth(),h=page.getHeight();
+     if(w<580||w>610||h<825||h>860)throw Error('El archivo no parece tener el formato A4 esperado de Judaica Design.');
+     const rg=Number($('gsm').value);
+     if(!(rg>=50&&rg<=600))throw Error('Ingresá un gramaje entre 50 y 600 g.');
+     const paper=$('paper').value.trim(),finish=$('finish').value.trim(),inside=$('interior').value.trim();
+     if(!paper||!finish||!inside)throw Error('Completá los tres textos.');
+     const regular=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+     const bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+     const fg=PDFLib.rgb(17/255,17/255,17/255);
+     page.drawRectangle({x:435.9,y:h-419,width:119.1,height:30.6,color:PDFLib.rgb(249/255,249/255,244/255)});
+     drawPair(page,regular,bold,397.195,'Tapa:',' '+paper+' '+rg+' grs.',6,fg,h);
+     drawPair(page,regular,bold,405.195,'',finish,6,fg,h);
+     drawPair(page,regular,bold,413.195,'Interior:',' '+inside,5.6,fg,h);
+     const bytes=await doc.save();
+     if(currentUrl)URL.revokeObjectURL(currentUrl);
+     currentUrl=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+     $('preview').src=currentUrl+'#toolbar=1&view=FitH';
+     const link=$('download');link.href=currentUrl;link.download=file.name.replace(/\.pdf$/i,'')+' - tapa editada.pdf';link.style.display='inline-block';
+     status('PDF corregido. Revisá la vista previa y descargalo.');
+   }catch(e){status('No se pudo editar: '+(e.message||String(e)));}
+   finally{$('make').disabled=false}
+ });
+})();
+</script></body></html>
