@@ -19,6 +19,17 @@ input('compensation','3');assert.equal($('mainResult').textContent,'534 mm');ass
 click('triBtn');assert.equal($('rollBtn').getAttribute('aria-pressed'),'true');assert.match($('selection-status').textContent,/solo está disponible/);
 input('measure','1');assert.equal($('mainResult').textContent,'—');assert.equal($('diagram').children.length,0);assert.equal($('diagram-back').children.length,0);assert.equal($('guides-front').textContent,'');
 input('measure','100');assert.equal($('error').style.display,'none');click('openBtn');const v=$('measure').value;click('closedBtn');click('openBtn');assert.equal($('measure').value,v);
+click('closedBtn');input('compensation','2');input('measure','3');click('openBtn');click('quadBtn');
+assert.equal($('triBtn').getAttribute('aria-pressed'),'true');
+assert.equal($('measure').value,'7');assert.equal($('mainResult').textContent,'3 mm');
+assert.match($('selection-status').textContent,/no se puede cambiar/);
+input('compensation','');assert.equal($('mainResult').textContent,'—');
+assert.equal($('compensation').getAttribute('aria-invalid'),'true');
+assert.equal($('measure').getAttribute('aria-invalid'),'false');
+input('compensation','11');assert.match($('compensation-error').textContent,/0 a 10/);
+click('accordionBtn');assert.equal($('compensation-error').textContent,'');
+click('closedBtn');input('measure','0.004');assert.equal($('mainResult').textContent,'—');
+assert.equal($('measure').getAttribute('aria-invalid'),'true');
 const readingHeading=$('hebrewBtn').parentElement.previousElementSibling.textContent,foldHeading=$('rollBtn').parentElement.previousElementSibling.textContent;assert.match(readingHeading,/Cómo se lee/);assert.match(foldHeading,/Cómo se dobla/);
 assert.ok($('hebrewBtn').compareDocumentPosition($('rollBtn'))&w.Node.DOCUMENT_POSITION_FOLLOWING);
 assert.equal(w.document.querySelectorAll('form[action]').length,0);dom.window.close();

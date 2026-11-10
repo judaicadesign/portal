@@ -51,20 +51,33 @@
   const $ = id => document.getElementById(id);
   const fmt = n => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(n);
   let kind = 'quad', mode = 'closed', fold = 'roll', direction = 'rtl';
-  const options = () => ({ fold, direction, compensation: Number($('compensation').value) });
-  function current() { return buildLayout(kind, mode, Number($('measure').value), options()); }
+  const options = () => ({ fold, direction, compensation: fold === 'accordion' ? 0 : $('compensation').valueAsNumber });
+  function current() {
+    const width = $('measure').valueAsNumber;
+    if (!Number.isFinite(width) || width < Number($('measure').min)) throw new Error('Ingresá un ancho de al menos 0,01 mm.');
+    return buildLayout(kind, mode, width, options());
+  }
   function setMode(next) {
     let result; try { result = current(); } catch (_) {}
+    $('selection-status').textContent = '';
     mode = next;
     if (result) $('measure').value = mode === 'closed' ? result.x : result.openWidth;
     update();
   }
   function setKind(next) {
     let x; try { x = current().x; } catch (_) {}
+    const reset = next === 'tri' && fold === 'gate';
+    const nextFold = reset ? 'roll' : fold;
+    if (x && mode === 'open') {
+      try {
+        $('measure').value = calculate(next, 'closed', x, { ...options(), fold: nextFold }).openWidth;
+      } catch {
+        $('selection-status').textContent = 'Con ese ancho y esa reducción no se puede cambiar de tipo. Aumentá el ancho o reducí la solapa.';
+        return;
+      }
+    }
     kind = next;
-    const reset = kind === 'tri' && fold === 'gate';
-    if (reset) fold = 'roll';
-    if (x) $('measure').value = mode === 'closed' ? x : calculate(kind, 'closed', x, options()).openWidth;
+    fold = nextFold;
     update();
     $('selection-status').textContent = reset ? 'Se seleccionó envolvente: ventana con cierre central solo está disponible para cuadrípticos.' : '';
   }
@@ -91,7 +104,6 @@
     $('inputLabel').textContent = mode === 'closed' ? 'Ancho cerrado (tapa / contratapa)' : 'Ancho total abierto';
     $('helper').textContent = mode === 'closed' ? 'X es el ancho final de la tapa y la contratapa. Medida sin demasía.' : 'Ancho de la hoja abierta, de borde a borde de corte, sin demasía.';
     $('resultLabel').textContent = mode === 'closed' ? 'Ancho total abierto' : 'Ancho cerrado (tapa)';
-    $('measure').min = '0.01';
     const reading = direction === 'rtl' ? 'Hebreo · de derecha a izquierda' : 'Español · de izquierda a derecha';
     $('orientation').textContent = reading + '. Cada cara se muestra de izquierda a derecha, tal como la ves en el archivo.';
     $('front-title').textContent = fold === 'roll' || fold === 'gate' || !tri ? 'Cara A · exterior' : 'Cara A · tapa e interiores';
@@ -100,10 +112,21 @@
     $('layout-tip').textContent = accordion ? (tri ? 'En el tríptico Z, tapa y contratapa van en caras opuestas. No uses la distribución del tríptico envolvente.' : 'En el cuadríptico acordeón, tapa y contratapa van en los extremos de la cara A.') : fold === 'gate' ? 'En ventana cerrada, tapa y contratapa son los dos paneles centrales de la cara A. Las puertas son los paneles extremos, más angostos.' : 'Tapa y contratapa quedan juntas en la cara A. Las solapas más angostas se pliegan dentro.';
     $('note').textContent = accordion ? 'Acordeón: paneles iguales, sin reducción de solapas.' : 'Reducción usada: ' + fmt(Number($('compensation').value)) + ' mm' + (fold === 'gate' ? ' en cada puerta.' : tri ? ' en la solapa interna.' : ' por paso: X / X / X − d / X − 2d.');
     $('note').textContent += ' Las guías se miden desde el borde izquierdo de corte de cada cara. El esquema no incluye demasía. Confirmá la tolerancia con la imprenta según papel, plastificado e hendido.';
+    const reduction = $('compensation');
+    const reductionInvalid = !accordion && (!Number.isFinite(reduction.valueAsNumber) || reduction.valueAsNumber < 0 || reduction.valueAsNumber > 10);
+    if (reductionInvalid) $('note').textContent = '';
+    reduction.setAttribute('aria-invalid', String(reductionInvalid));
+    const reductionError = reductionInvalid ? 'Ingresá una reducción de 0 a 10 mm. Escribí 0 para usar paneles sin reducción.' : '';
+    if ($('compensation-error').textContent !== reductionError) $('compensation-error').textContent = reductionError;
     let result;
-    try { result = current(); } catch (e) {
-      $('error').textContent = e.message; $('error').style.display = 'block'; $('measure').setAttribute('aria-invalid','true');
-      $('mainResult').textContent = '—'; $('formula').textContent = 'Ingresá una medida válida para calcular.'; $('closedChip').textContent = 'Cerrado: —';
+    try {
+      if (reductionInvalid) throw new Error();
+      result = current();
+    } catch (e) {
+      $('error').textContent = reductionInvalid ? '' : e.message;
+      $('error').style.display = reductionInvalid ? 'none' : 'block';
+      $('measure').setAttribute('aria-invalid', String(!reductionInvalid));
+      $('mainResult').textContent = '—'; $('formula').textContent = 'Corregí el campo indicado para calcular.'; $('closedChip').textContent = 'Cerrado: —';
       for (const id of ['diagram','diagram-back','guides-front','guides-back']) $(id).replaceChildren();
       return;
     }
@@ -119,6 +142,10 @@
   for (const [id, next] of [['triBtn','tri'],['quadBtn','quad']]) $(id).addEventListener('click', () => setKind(next));
   for (const [id, next] of [['rollBtn','roll'],['accordionBtn','accordion'],['gateBtn','gate']]) $(id).addEventListener('click', () => setFold(next));
   for (const [id, next] of [['hebrewBtn','rtl'],['spanishBtn','ltr']]) $(id).addEventListener('click', () => { direction = next; update(); });
-  for (const id of ['measure','compensation']) { $(id).addEventListener('input', update); $(id).addEventListener('change', update); }
+  function updateInput() {
+    $('selection-status').textContent = '';
+    update();
+  }
+  for (const id of ['measure','compensation']) { $(id).addEventListener('input', updateInput); $(id).addEventListener('change', updateInput); }
   update();
 })();

@@ -133,16 +133,29 @@
   catch(e){if(version===renderVersion&&e.name!=='RenderingCancelledException')$('preview-status').textContent='No se pudo mostrar esta página. Probá cargar nuevamente el archivo.';}
  }
  $('pdf-file').addEventListener('change',async e=>{
-  if(busy)return;const file=e.target.files[0];if(!file)return;lock(true);status('Leyendo el PDF…');invalidate();$('editor').hidden=true;source=null;
+  if(busy)return;const file=e.target.files[0];if(!file)return;lock(true);status('Leyendo el PDF…');
+  const previous=originalDoc;
   try{
    if(file.size>core().MAX_BYTES)throw Error('El archivo supera 200 MB. Exportá una copia más liviana.');if(file.size>75*1024*1024)status('Leyendo un archivo grande. Puede tardar; para este tamaño conviene usar una computadora.');
    const bytes=new Uint8Array(await file.arrayBuffer());if(!new TextDecoder().decode(bytes.slice(0,1024)).includes('%PDF-'))throw Error('El archivo elegido no parece ser un PDF.');
    await loadWriter();
-   const doc=await core().load(bytes);source={bytes,doc};name=file.name;markResults=[];marksAnalyzed=false;$('fold-type').value='none';$('fold-style').value='equal';updateFolds();
+   const doc=await core().load(bytes);
+   core().inspect(doc);
+   const candidate=await previewDoc(bytes);
+   try{await candidate.getPage(1);}
+   catch(error){await candidate.destroy().catch(()=>{});throw error;}
+   view='original';page=1;
+   invalidate();
+   originalDoc=candidate;
+   source={bytes,doc};name=file.name;markResults=[];marksAnalyzed=false;$('fold-type').value='none';$('fold-style').value='equal';updateFolds();
    $('page-rotation').value='auto';$('sheet-orientation').value='auto';$('custom-trim').checked=false;$('trim-width').disabled=true;$('trim-height').disabled=true;$('marks').checked=false;$('numbering').checked=false;$('number-options').hidden=true;$('booklet').checked=bookletMode;$('booklet-note').hidden=true;$('duplex-note').hidden=true;$('fill').value='none';$('color-label').hidden=true;
    review();$('page-colors').replaceChildren();for(let n=1;n<=info.count;n++){const label=document.createElement('label');label.textContent='Página '+n;const input=document.createElement('input');input.type='color';input.value='#ffffff';input.dataset.page=n;label.append(input);$('page-colors').append(label);}updateFill();$('bleed').value=info.hasThreeMM?3:0;$('trim-width').value=(info.pages[0].viewTrim.width/core().MM).toFixed(2);$('trim-height').value=(info.pages[0].viewTrim.height/core().MM).toFixed(2);$('number-to').value=info.count;$('number-from').value=1;$('number-from').max=info.count;$('number-to').max=info.count;
-   if(originalDoc)await originalDoc.destroy();originalDoc=await previewDoc(bytes);view='original';page=1;$('editor').hidden=false;$('file-name').textContent=name+' · Se procesa en tu dispositivo.';await render();if(!bookletMode)await scanMarks();review();updateFolds();if(bookletMode){status(info.count<2?'Este PDF tiene una sola página. Necesitás al menos dos para armar un cuadernillo.':'PDF listo. Elegí la apertura y presioná «Armar cuadernillo y ver resultado».',info.count<2);go('output-section');}else status('Archivo revisado. Elegí las correcciones y prepará tu PDF.');
-  }catch(e){source=null;$('pdf-file').value='';status(e.message||'No pudimos abrir el archivo.',true);}finally{lock(false);}
+   $('editor').hidden=false;$('file-name').textContent=name+' · Se procesa en tu dispositivo.';await render();if(previous)await previous.destroy().catch(()=>{});if(!bookletMode)await scanMarks();review();updateFolds();if(bookletMode){status(info.count<2?'Este PDF tiene una sola página. Necesitás al menos dos para armar un cuadernillo.':'PDF listo. Elegí la apertura y presioná «Armar cuadernillo y ver resultado».',info.count<2);go('output-section');}else status('Archivo revisado. Elegí las correcciones y prepará tu PDF.');
+  }catch(e){
+   $('pdf-file').value='';
+   const preserved=previous&&originalDoc===previous?' Seguís trabajando con el PDF anterior.':'';
+   status((e.message||'No pudimos abrir el archivo.')+preserved,true);
+  }finally{lock(false);}
  });
  function optionsChanged(e){if(bookletMode){$('booklet').checked=!!info&&info.count>1;$('fold-type').value='none';}invalidate();updateFill();$('number-options').hidden=!$('numbering').checked;$('booklet-note').hidden=!$('booklet').checked;$('duplex-note').hidden=!$('booklet').checked;$('trim-width').disabled=!$('custom-trim').checked;$('trim-height').disabled=!$('custom-trim').checked;$('direction-label').hidden=!info||info.count<2||(!$('booklet').checked&&!$('numbering').checked);if(e.target.id==='fold-type'&&$('fold-type').value!=='none'){$('booklet').checked=false;$('marks').checked=true;if($('fold-type').value!=='3'&&$('fold-style').value==='roll')$('fold-style').value='equal';}if(e.target.id==='booklet'&&$('booklet').checked)$('fold-type').value='none';updateFolds();if(['custom-trim','trim-width','trim-height'].includes(e.target.id)){try{markResults=[];marksAnalyzed=false;review();status('Medida final actualizada. Revisá el resultado antes de descargar.');}catch(err){status(err.message,true);}}}
  $('options').addEventListener('input',optionsChanged);$('options').addEventListener('change',optionsChanged);
@@ -162,5 +175,5 @@
  $('download').addEventListener('click',e=>{if(!$('checked-preview').checked||!outputURL)e.preventDefault();});
  $('view-original').onclick=()=>{view='original';page=1;render();};$('view-result').onclick=()=>{if(resultDoc){view='result';page=1;render();}};
  $('previous').onclick=()=>{page--;render();};$('next').onclick=()=>{page++;render();};
- window.addEventListener('pagehide',()=>{if(outputURL)URL.revokeObjectURL(outputURL);});
+ window.addEventListener('pagehide',event=>{if(!event.persisted&&outputURL)URL.revokeObjectURL(outputURL);});
 })();
