@@ -3,9 +3,46 @@
  const $=id=>document.getElementById(id),core=()=>window.JDPrintPDF;
  const bookletMode=document.body.dataset.pdfMode==='booklet'||new URLSearchParams(location.search).get('modo')==='cuadernillo';
  let source=null,name='',info=null,originalDoc=null,resultDoc=null,view='original',page=1,outputURL=null,busy=false,renderTask=null,renderVersion=0,resultLayout=null;
- let enginePromise,markResults=[],marksAnalyzed=false;
- function engine(){return enginePromise||(enginePromise=import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/legacy/build/pdf.min.mjs').then(p=>{p.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/legacy/build/pdf.worker.min.mjs';return p;}).catch(e=>{enginePromise=null;throw e;}));}
- async function previewDoc(bytes){const p=await engine();return p.getDocument({data:new Uint8Array(bytes),isEvalSupported:false,cMapUrl:'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/cmaps/',cMapPacked:true,standardFontDataUrl:'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/standard_fonts/',wasmUrl:'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/wasm/'}).promise;}
+ let enginePromise, writerPromise,markResults=[],marksAnalyzed=false;
+ const cdns=['https://cdn.jsdelivr.net/npm/','https://unpkg.com/'];
+ function loadWriter(){
+  if(window.PDFLib)return Promise.resolve();
+  return writerPromise||(writerPromise=(async()=>{
+   for(const cdn of cdns){
+    if(await new Promise(resolve=>{
+     const script=document.createElement('script');
+     const finish=loaded=>{clearTimeout(timer);script.remove();resolve(loaded);};
+     const timer=setTimeout(()=>finish(false),12000);
+     script.src=cdn+'pdf-lib@1.17.1/dist/pdf-lib.min.js';
+     script.onload=()=>finish(!!window.PDFLib);
+     script.onerror=()=>finish(false);
+     document.head.append(script);
+    }))return;
+   }
+   throw Error('No se pudo cargar el motor PDF. Revisá la conexión y volvé a elegir tu archivo.');
+  })().catch(error=>{writerPromise=null;throw error;}));
+ }
+ function engine(){return enginePromise||(enginePromise=(async()=>{
+  for(const cdn of cdns){
+   const base=cdn+'pdfjs-dist@6.4.299/';
+   try{
+    const pdf=await import(base+'legacy/build/pdf.min.mjs');
+    pdf.GlobalWorkerOptions.workerSrc=base+'legacy/build/pdf.worker.min.mjs';
+    return {pdf,base};
+   }catch{}
+  }
+  throw Error('No se pudo cargar la vista previa. Revisá la conexión y volvé a elegir tu PDF.');
+ })().catch(error=>{enginePromise=null;throw error;}));}
+ async function previewDoc(bytes){
+  const {pdf,base}=await engine();
+  const task=pdf.getDocument({data:new Uint8Array(bytes),isEvalSupported:false,cMapUrl:base+'cmaps/',cMapPacked:true,standardFontDataUrl:base+'standard_fonts/',wasmUrl:base+'wasm/'});
+  try{return await task.promise;}
+  catch{
+   await task.destroy?.().catch(()=>{});
+   enginePromise=null;
+   throw Error('No se pudo abrir la vista previa. Revisá la conexión y volvé a elegir tu PDF.');
+  }
+ }
  function status(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error);}
  const mm=v=>(v/core().MM).toLocaleString('es-AR',{maximumFractionDigits:2});
  function lock(value){busy=value;$('options').disabled=value;$('pdf-file').disabled=value;$('generate').disabled=value||(bookletMode&&(!info||info.count<2));$('generate').textContent=value?'Preparando…':bookletMode?'Armar cuadernillo y ver resultado':'Preparar PDF y abrir vista previa';}
@@ -15,7 +52,7 @@
   if(outputURL){URL.revokeObjectURL(outputURL);outputURL=null;}
   if(view==='result'){view='original';page=1;render();}if(resultDoc){resultDoc.destroy();resultDoc=null;}
  }
- function go(id){const el=$(id);for(let parent=el?.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;el?.scrollIntoView?.({behavior:'smooth',block:'start'});if(el){el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}}
+ function go(id){const el=$(id);for(let parent=el?.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;el?.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});if(el){el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}}
  if(bookletMode){
   document.body.dataset.pdfMode='booklet';document.title='Ordenar páginas para doblar · Judaica Design';
   document.querySelector('.intro h1').textContent='Ordenar páginas para doblar';
@@ -100,11 +137,12 @@
   try{
    if(file.size>core().MAX_BYTES)throw Error('El archivo supera 200 MB. Exportá una copia más liviana.');if(file.size>75*1024*1024)status('Leyendo un archivo grande. Puede tardar; para este tamaño conviene usar una computadora.');
    const bytes=new Uint8Array(await file.arrayBuffer());if(!new TextDecoder().decode(bytes.slice(0,1024)).includes('%PDF-'))throw Error('El archivo elegido no parece ser un PDF.');
+   await loadWriter();
    const doc=await core().load(bytes);source={bytes,doc};name=file.name;markResults=[];marksAnalyzed=false;$('fold-type').value='none';$('fold-style').value='equal';updateFolds();
    $('page-rotation').value='auto';$('sheet-orientation').value='auto';$('custom-trim').checked=false;$('trim-width').disabled=true;$('trim-height').disabled=true;$('marks').checked=false;$('numbering').checked=false;$('number-options').hidden=true;$('booklet').checked=bookletMode;$('booklet-note').hidden=true;$('duplex-note').hidden=true;$('fill').value='none';$('color-label').hidden=true;
    review();$('page-colors').replaceChildren();for(let n=1;n<=info.count;n++){const label=document.createElement('label');label.textContent='Página '+n;const input=document.createElement('input');input.type='color';input.value='#ffffff';input.dataset.page=n;label.append(input);$('page-colors').append(label);}updateFill();$('bleed').value=info.hasThreeMM?3:0;$('trim-width').value=(info.pages[0].viewTrim.width/core().MM).toFixed(2);$('trim-height').value=(info.pages[0].viewTrim.height/core().MM).toFixed(2);$('number-to').value=info.count;$('number-from').value=1;$('number-from').max=info.count;$('number-to').max=info.count;
    if(originalDoc)await originalDoc.destroy();originalDoc=await previewDoc(bytes);view='original';page=1;$('editor').hidden=false;$('file-name').textContent=name+' · Se procesa en tu dispositivo.';await render();if(!bookletMode)await scanMarks();review();updateFolds();if(bookletMode){status(info.count<2?'Este PDF tiene una sola página. Necesitás al menos dos para armar un cuadernillo.':'PDF listo. Elegí la apertura y presioná «Armar cuadernillo y ver resultado».',info.count<2);go('output-section');}else status('Archivo revisado. Elegí las correcciones y prepará tu PDF.');
-  }catch(e){source=null;status(e.message||'No pudimos abrir el archivo.',true);}finally{lock(false);}
+  }catch(e){source=null;$('pdf-file').value='';status(e.message||'No pudimos abrir el archivo.',true);}finally{lock(false);}
  });
  function optionsChanged(e){if(bookletMode){$('booklet').checked=!!info&&info.count>1;$('fold-type').value='none';}invalidate();updateFill();$('number-options').hidden=!$('numbering').checked;$('booklet-note').hidden=!$('booklet').checked;$('duplex-note').hidden=!$('booklet').checked;$('trim-width').disabled=!$('custom-trim').checked;$('trim-height').disabled=!$('custom-trim').checked;$('direction-label').hidden=!info||info.count<2||(!$('booklet').checked&&!$('numbering').checked);if(e.target.id==='fold-type'&&$('fold-type').value!=='none'){$('booklet').checked=false;$('marks').checked=true;if($('fold-type').value!=='3'&&$('fold-style').value==='roll')$('fold-style').value='equal';}if(e.target.id==='booklet'&&$('booklet').checked)$('fold-type').value='none';updateFolds();if(['custom-trim','trim-width','trim-height'].includes(e.target.id)){try{markResults=[];marksAnalyzed=false;review();status('Medida final actualizada. Revisá el resultado antes de descargar.');}catch(err){status(err.message,true);}}}
  $('options').addEventListener('input',optionsChanged);$('options').addEventListener('change',optionsChanged);

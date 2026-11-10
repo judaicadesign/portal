@@ -1,6 +1,7 @@
 /* PDF preparation runs locally. Original pages remain vector PDF content. */
-(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory(require('pdf-lib'));else root.JDPrintPDF=factory(root.PDFLib);})(typeof globalThis!=='undefined'?globalThis:this,function(P){
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory(()=>require('pdf-lib'));else root.JDPrintPDF=factory(()=>root.PDFLib);})(typeof globalThis!=='undefined'?globalThis:this,function(library){
  'use strict';
+ let P=library();
  const MM=72/25.4, EPS=.15,MAX_BYTES=200*1024*1024;
  const intersects=(a,b)=>{const x=Math.max(a.x,b.x),y=Math.max(a.y,b.y);return{x,y,width:Math.max(0,Math.min(a.x+a.width,b.x+b.width)-x),height:Math.max(0,Math.min(a.y+a.height,b.y+b.height)-y)};};
  function geometry(page,finalSize){
@@ -15,6 +16,8 @@
   return{trim,media,available,rotation,viewTrim:{width:swap?trim.height:trim.width,height:swap?trim.width:trim.height}};
  }
  async function load(bytes){
+  P=library();
+  if(!P)throw Error('No se pudo cargar el motor PDF. Volvé a intentar.');
   if(!P)throw Error('No se pudo cargar el motor PDF. Recargá la página.');
   if(bytes.byteLength>MAX_BYTES)throw Error('El archivo supera 200 MB.');
   let doc;try{doc=await P.PDFDocument.load(bytes,{updateMetadata:false});}catch(e){throw Error(/encrypt/i.test(String(e))?'El PDF tiene contraseña. Exportá una copia sin protección.':'No se pudo abrir este PDF. Probá exportarlo nuevamente.');}
