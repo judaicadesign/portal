@@ -39,7 +39,8 @@ abierta sin el cierre central (que tiene otra medida cerrada y otra tapa).
 ## Medidas
 
 X es el ancho cerrado; d es la reducción editable de imprenta (2 mm por
-defecto, orientativos). En orientación hebrea:
+defecto, orientativos). Al pasar de cuadríptico a tríptico o díptico se conserva
+el ancho individual X y se recalcula el ancho total abierto. En orientación hebrea:
 
 - Díptico: X / X; abierto = 2X, sin solapas ni reducción.
 - Envolvente 3: X / X / X−d; abierto = 3X−d.
