@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {calculate} = require('../calculator.js');
+assert.deepEqual(calculate('di','closed',100,{fold:'accordion'}),{x:100,panels:[100,100],openWidth:200});
+assert.deepEqual(calculate('di','open',200,{fold:'accordion'}),{x:100,panels:[100,100],openWidth:200});
 assert.deepEqual(calculate('tri','closed',100),{x:100,panels:[100,100,98],openWidth:298});
 assert.deepEqual(calculate('tri','open',298),{x:100,panels:[100,100,98],openWidth:298});
 assert.deepEqual(calculate('quad','closed',135),{x:135,panels:[135,135,133,131],openWidth:534});
@@ -28,7 +30,8 @@ assert.deepEqual(buildLayout('quad','closed',135,{fold:'gate'}).panels,[133,135,
 assert.equal(calculate('quad','open',536,{fold:'gate'}).x,135);
 assert.deepEqual(calculate('quad','closed',100,{fold:'accordion'}).panels,[100,100,100,100]);
 assert.deepEqual(calculate('tri','open',300,{fold:'accordion'}).panels,[100,100,100]);
-for(const kind of ['tri','quad'])for(const fold of ['roll','accordion','gate']) {
+for(const kind of ['di','tri','quad'])for(const fold of ['roll','accordion','gate']) {
+  if(kind==='di'&&fold!=='accordion')continue;
   if(kind==='tri'&&fold==='gate')continue;
   for(const compensation of [0,1,2,3.2])for(const x of [50,100,100.125,135]) {
     const he=buildLayout(kind,'closed',x,{fold,compensation}),es=buildLayout(kind,'closed',x,{fold,compensation,direction:'ltr'});
@@ -44,12 +47,16 @@ for(const kind of ['tri','quad'])for(const fold of ['roll','accordion','gate']) 
       for(const p of l.front)assert.equal(l.back.find(b=>b.physical===p.physical).width,p.width);
       assert.ok(Math.abs(l.front.reduce((s,p)=>s+p.width,0)-l.openWidth)<1e-9);
       assert.ok(Math.abs(calculate(kind,'open',l.openWidth,{fold,compensation}).x-x)<1e-9);
-      assert.equal(l.frontGuides.length,(kind==='tri'?2:3));
+      assert.equal(l.frontGuides.length,(kind==='di'?1:kind==='tri'?2:3));
       for(let i=0;i<l.frontGuides.length;i++)assert.ok(Math.abs(l.frontGuides[i]+l.backGuides.at(-i-1)-l.openWidth)<1e-9,'Duplex fold guides align');
     }
   }
 }
 assert.throws(()=>calculate('tri','closed',100,{fold:'gate'}),/cuatro paneles/);
+assert.throws(()=>calculate('di','closed',100,{fold:'roll'}),/pliegue central/);
+assert.throws(()=>calculate('di','closed',100,{fold:'gate'}),/cuatro paneles/);
+assert.deepEqual(buildLayout('di','closed',135,{fold:'accordion'}).front.map(p=>p.label),['Tapa','Contratapa']);
+assert.deepEqual(buildLayout('di','closed',135,{fold:'accordion'}).frontGuides,[135]);
 for(const options of [{fold:'invalid'},{direction:'invalid'},{compensation:-1},{compensation:NaN},{compensation:Infinity},{compensation:11}])assert.throws(()=>calculate('quad','closed',100,options));
 assert.deepEqual(buildLayout('quad','closed',135).front.map(p=>p.label),['Tapa','Contratapa','1.ª solapa interna','2.ª solapa interna']);
 assert.deepEqual(buildLayout('quad','closed',135).frontGuides,[135,270,403]);

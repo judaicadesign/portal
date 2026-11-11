@@ -6,12 +6,15 @@ const widths=id=>[...$(id).querySelectorAll('.panel-value')].map(e=>e.textConten
 const click=id=>$(id).click();
 const input=(id,value)=>{$(id).value=value;$(id).dispatchEvent(new w.Event('input',{bubbles:true}));};
 assert.equal($('mainResult').textContent,'534 mm');
+click('diBtn');assert.equal($('mainResult').textContent,'270 mm');assert.equal($('accordionBtn').getAttribute('aria-pressed'),'true');assert.equal($('rollBtn').hidden,true);assert.equal($('gateBtn').hidden,true);assert.match($('fold-description').textContent,/único pliegue central/);
+click('quadBtn');click('rollBtn');assert.equal($('mainResult').textContent,'534 mm');
 assert.deepEqual(labels('diagram'),['Tapa','Contratapa','1.ª solapa interna','2.ª solapa interna']);
 const originalA=labels('diagram'),originalB=labels('diagram-back'),originalWidths=widths('diagram');
 click('spanishBtn');assert.deepEqual(labels('diagram'),originalA.toReversed());assert.deepEqual(labels('diagram-back'),originalB.toReversed());assert.deepEqual(widths('diagram'),originalWidths.toReversed());
 assert.equal($('spanishBtn').getAttribute('aria-pressed'),'true');assert.match($('orientation').textContent,/Español/);
 click('hebrewBtn');click('openBtn');assert.equal($('measure').value,'534');assert.equal($('mainResult').textContent,'135 mm');click('closedBtn');assert.equal($('measure').value,'135');
 click('accordionBtn');assert.equal($('mainResult').textContent,'540 mm');assert.equal($('compensation-settings').hidden,true);assert.deepEqual(labels('diagram'),['Tapa','Interior · cara A','Interior · cara A','Contratapa']);
+click('openBtn');assert.equal($('measure').value,'540');click('triBtn');assert.equal($('measure').value,'405');assert.equal($('mainResult').textContent,'135 mm');click('diBtn');assert.equal($('measure').value,'270');assert.equal($('mainResult').textContent,'135 mm');click('quadBtn');assert.equal($('measure').value,'540');click('closedBtn');assert.equal($('measure').value,'135');
 click('triBtn');assert.equal($('gateBtn').disabled,true);assert.equal($('mainResult').textContent,'405 mm');assert.equal($('diagram').querySelectorAll('[data-role="back"]').length,0);assert.equal($('diagram-back').querySelectorAll('[data-role="back"]').length,1);assert.match($('layout-tip').textContent,/caras opuestas/);
 click('spanishBtn');assert.equal(labels('diagram').at(-1),'Tapa');assert.equal(labels('diagram-back').at(-1),'Contratapa');
 click('quadBtn');click('gateBtn');assert.equal($('mainResult').textContent,'536 mm');assert.deepEqual(labels('diagram'),['Puerta de contratapa','Contratapa','Tapa','Puerta de tapa']);assert.equal($('compensation-settings').hidden,false);assert.match($('fold-description').textContent,/cierra al medio/);

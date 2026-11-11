@@ -7,8 +7,9 @@
   'use strict';
   function settings(kind, options = {}) {
     const { fold = 'roll', direction = 'rtl', compensation = 2 } = options;
-    if (!['tri', 'quad'].includes(kind) || !['roll', 'accordion', 'gate'].includes(fold) || !['rtl', 'ltr'].includes(direction)) throw new Error('Elegí un tipo, plegado y lectura válidos.');
+    if (!['di', 'tri', 'quad'].includes(kind) || !['roll', 'accordion', 'gate'].includes(fold) || !['rtl', 'ltr'].includes(direction)) throw new Error('Elegí un tipo, plegado y lectura válidos.');
     if (fold === 'gate' && kind !== 'quad') throw new Error('El plegado ventana con cierre central necesita cuatro paneles.');
+    if (kind === 'di' && fold !== 'accordion') throw new Error('El díptico usa un único pliegue central, sin solapas.');
     if (typeof compensation !== 'number' || !Number.isFinite(compensation) || compensation < 0 || compensation > 10) throw new Error('La reducción de solapas debe estar entre 0 y 10 mm.');
     return { fold, direction, compensation };
   }
@@ -16,8 +17,8 @@
     const { fold, direction, compensation: d } = settings(kind, options);
     if (!['closed', 'open'].includes(mode)) throw new Error('Elegí un tipo y una medida válidos.');
     if (typeof entered !== 'number' || !Number.isFinite(entered) || entered <= 0) throw new Error('Ingresá una medida válida.');
-    const count = kind === 'tri' ? 3 : 4;
-    const deductions = fold === 'accordion' ? Array(count).fill(0) : fold === 'gate' ? [d, 0, 0, d] : kind === 'tri' ? [0, 0, d] : [0, 0, d, 2 * d];
+    const count = kind === 'di' ? 2 : kind === 'tri' ? 3 : 4;
+    const deductions = kind === 'di' ? [0, 0] : fold === 'accordion' ? Array(count).fill(0) : fold === 'gate' ? [d, 0, 0, d] : kind === 'tri' ? [0, 0, d] : [0, 0, d, 2 * d];
     const deduction = deductions.reduce((a, b) => a + b, 0);
     const x = mode === 'closed' ? entered : (entered + deduction) / count;
     const panels = deductions.map(n => x - n);
@@ -28,11 +29,15 @@
   }
   function buildLayout(kind, mode, entered, options = {}) {
     const config = settings(kind, options), result = calculate(kind, mode, entered, config);
-    const { fold, direction } = config, tri = kind === 'tri';
+    const { fold, direction } = config, di = kind === 'di', tri = kind === 'tri';
     const item = (role, label, reverseLabel, flap = false) => ({ role, label, reverseLabel, flap });
     let faces;
-    if (fold === 'roll') {
-      faces = [item('front', 'Tapa', 'Interior de tapa'), item('back', 'Contratapa', 'Interior de contratapa'), ...(tri ? [item('flap', 'Solapa interna', 'Interior de solapa', true)] : [item('flap', '1.ª solapa interna', 'Interior de 1.ª solapa', true), item('flap', '2.ª solapa interna', 'Interior de 2.ª solapa', true)])];
+    if (di) {
+      faces = [item('front', 'Tapa', 'Interior de tapa'), item('back', 'Contratapa', 'Interior de contratapa')];
+    } else if (fold === 'roll') {
+      faces = tri
+        ? [item('front', 'Tapa', 'Interior de tapa'), item('back', 'Contratapa', 'Interior de contratapa'), item('flap', 'Solapa interna', 'Interior de solapa', true)]
+        : [item('front', 'Tapa', 'Interior de tapa'), item('back', 'Contratapa', 'Interior de contratapa'), item('flap', '1.ª solapa interna', 'Interior de 1.ª solapa', true), item('flap', '2.ª solapa interna', 'Interior de 2.ª solapa', true)];
     } else if (fold === 'gate') {
       faces = [item('flap', 'Puerta de tapa', 'Interior de puerta de tapa', true), item('front', 'Tapa', 'Interior de tapa'), item('back', 'Contratapa', 'Interior de contratapa'), item('flap', 'Puerta de contratapa', 'Interior de puerta de contratapa', true)];
     } else {
@@ -66,8 +71,9 @@
   }
   function setKind(next) {
     let x; try { x = current().x; } catch (_) {}
-    const reset = next === 'tri' && fold === 'gate';
-    const nextFold = reset ? 'roll' : fold;
+    const resetGate = next !== 'quad' && fold === 'gate';
+    const resetDiptych = next === 'di' && fold !== 'accordion';
+    const nextFold = next === 'di' ? 'accordion' : resetGate ? 'roll' : fold;
     if (x && mode === 'open') {
       try {
         $('measure').value = calculate(next, 'closed', x, { ...options(), fold: nextFold }).openWidth;
@@ -79,9 +85,11 @@
     kind = next;
     fold = nextFold;
     update();
-    $('selection-status').textContent = reset ? 'Se seleccionó envolvente: ventana con cierre central solo está disponible para cuadrípticos.' : '';
+    $('selection-status').textContent = resetDiptych
+      ? 'Se aplicó el pliegue central: el díptico tiene dos paneles iguales y no utiliza solapas.'
+      : resetGate ? 'Se seleccionó envolvente: ventana con cierre central solo está disponible para cuadrípticos.' : '';
   }
-  function setFold(next) { if (kind === 'tri' && next === 'gate') return; fold = next; $('selection-status').textContent = ''; update(); }
+  function setFold(next) { if ((kind !== 'quad' && next === 'gate') || (kind === 'di' && next !== 'accordion')) return; fold = next; $('selection-status').textContent = ''; update(); }
   function draw(id, panels, x) {
     const root = $(id); root.replaceChildren(); root.style.gridTemplateColumns = panels.map(p => p.width + 'fr').join(' ');
     for (const p of panels) {
@@ -94,12 +102,15 @@
     }
   }
   function update() {
-    const tri = kind === 'tri', accordion = fold === 'accordion';
-    for (const [id, active] of [['closedBtn',mode==='closed'],['openBtn',mode==='open'],['triBtn',tri],['quadBtn',!tri],['hebrewBtn',direction==='rtl'],['spanishBtn',direction==='ltr'],['rollBtn',fold==='roll'],['accordionBtn',accordion],['gateBtn',fold==='gate']]) {
+    const di = kind === 'di', tri = kind === 'tri', accordion = fold === 'accordion';
+    for (const [id, active] of [['closedBtn',mode==='closed'],['openBtn',mode==='open'],['quadBtn',kind==='quad'],['triBtn',tri],['diBtn',di],['hebrewBtn',direction==='rtl'],['spanishBtn',direction==='ltr'],['rollBtn',fold==='roll'],['accordionBtn',accordion],['gateBtn',fold==='gate']]) {
       $(id).classList.toggle('active', active); $(id).setAttribute('aria-pressed', String(active));
     }
-    $('gateBtn').disabled = tri; $('gate-help').hidden = !tri;
-    $('accordion-name').textContent = tri ? 'Z · acordeón' : 'Acordeón · zigzag';
+    $('rollBtn').hidden = di; $('gateBtn').hidden = di;
+    $('foldSwitch').classList.toggle('is-diptych', di);
+    $('gateBtn').disabled = kind !== 'quad'; $('gate-help').hidden = di || kind === 'quad';
+    $('accordion-name').textContent = di ? 'Pliegue central' : tri ? 'Z · acordeón' : 'Acordeón · zigzag';
+    $('accordion-description').textContent = di ? 'Dos paneles iguales' : 'Pliegues alternados';
     $('compensation-settings').hidden = accordion;
     $('inputLabel').textContent = mode === 'closed' ? 'Ancho cerrado (tapa / contratapa)' : 'Ancho total abierto';
     $('helper').textContent = mode === 'closed' ? 'X es el ancho final de la tapa y la contratapa. Medida sin demasía.' : 'Ancho de la hoja abierta, de borde a borde de corte, sin demasía.';
@@ -108,9 +119,9 @@
     $('orientation').textContent = reading + '. Cada cara se muestra de izquierda a derecha, tal como la ves en el archivo.';
     $('front-title').textContent = fold === 'roll' || fold === 'gate' || !tri ? 'Cara A · exterior' : 'Cara A · tapa e interiores';
     $('back-title').textContent = fold === 'roll' || fold === 'gate' || !tri ? 'Cara B · interior' : 'Cara B · contratapa e interiores';
-    $('fold-description').textContent = fold === 'roll' ? 'Las solapas se enrollan hacia adentro. Se empieza por la más angosta; la tapa cierra al final.' : accordion ? 'Los pliegues alternan hacia delante y hacia atrás. Todos los paneles tienen el mismo ancho.' : 'Las dos puertas se pliegan hacia el centro; después, el folleto se cierra al medio como un libro. Es ventana cerrada o doble puerta con cierre central.';
-    $('layout-tip').textContent = accordion ? (tri ? 'En el tríptico Z, tapa y contratapa van en caras opuestas. No uses la distribución del tríptico envolvente.' : 'En el cuadríptico acordeón, tapa y contratapa van en los extremos de la cara A.') : fold === 'gate' ? 'En ventana cerrada, tapa y contratapa son los dos paneles centrales de la cara A. Las puertas son los paneles extremos, más angostos.' : 'Tapa y contratapa quedan juntas en la cara A. Las solapas más angostas se pliegan dentro.';
-    $('note').textContent = accordion ? 'Acordeón: paneles iguales, sin reducción de solapas.' : 'Reducción usada: ' + fmt(Number($('compensation').value)) + ' mm' + (fold === 'gate' ? ' en cada puerta.' : tri ? ' en la solapa interna.' : ' por paso: X / X / X − d / X − 2d.');
+    $('fold-description').textContent = di ? 'El díptico tiene dos paneles iguales y un único pliegue central. No lleva solapas ni reducción.' : fold === 'roll' ? 'Las solapas se enrollan hacia adentro. Se empieza por la más angosta; la tapa cierra al final.' : accordion ? 'Los pliegues alternan hacia delante y hacia atrás. Todos los paneles tienen el mismo ancho.' : 'Las dos puertas se pliegan hacia el centro; después, el folleto se cierra al medio como un libro. Es ventana cerrada o doble puerta con cierre central.';
+    $('layout-tip').textContent = di ? 'Díptico: dos paneles iguales. Tapa y contratapa quedan en la cara exterior; sus interiores, en el reverso.' : accordion ? (tri ? 'En el tríptico Z, tapa y contratapa van en caras opuestas. No uses la distribución del tríptico envolvente.' : 'En el cuadríptico acordeón, tapa y contratapa van en los extremos de la cara A.') : fold === 'gate' ? 'En ventana cerrada, tapa y contratapa son los dos paneles centrales de la cara A. Las puertas son los paneles extremos, más angostos.' : 'Tapa y contratapa quedan juntas en la cara A. Las solapas más angostas se pliegan dentro.';
+    $('note').textContent = di ? 'Díptico: dos paneles iguales, sin solapas ni reducción.' : accordion ? 'Acordeón: paneles iguales, sin reducción de solapas.' : 'Reducción usada: ' + fmt(Number($('compensation').value)) + ' mm' + (fold === 'gate' ? ' en cada puerta.' : tri ? ' en la solapa interna.' : ' por paso: X / X / X − d / X − 2d.');
     $('note').textContent += ' Las guías se miden desde el borde izquierdo de corte de cada cara. El esquema no incluye demasía. Confirmá la tolerancia con la imprenta según papel, plastificado e hendido.';
     const reduction = $('compensation');
     const reductionInvalid = !accordion && (!Number.isFinite(reduction.valueAsNumber) || reduction.valueAsNumber < 0 || reduction.valueAsNumber > 10);
@@ -139,7 +150,7 @@
     $('mainResult').textContent = fmt(mode==='closed' ? result.openWidth : result.x) + ' mm';
   }
   for (const [id, next] of [['closedBtn','closed'],['openBtn','open']]) $(id).addEventListener('click', () => setMode(next));
-  for (const [id, next] of [['triBtn','tri'],['quadBtn','quad']]) $(id).addEventListener('click', () => setKind(next));
+  for (const [id, next] of [['quadBtn','quad'],['triBtn','tri'],['diBtn','di']]) $(id).addEventListener('click', () => setKind(next));
   for (const [id, next] of [['rollBtn','roll'],['accordionBtn','accordion'],['gateBtn','gate']]) $(id).addEventListener('click', () => setFold(next));
   for (const [id, next] of [['hebrewBtn','rtl'],['spanishBtn','ltr']]) $(id).addEventListener('click', () => { direction = next; update(); });
   function updateInput() {

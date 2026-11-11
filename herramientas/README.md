@@ -5,8 +5,9 @@ Sitio público independiente: calculadora de paneles en `folletos/`, revisión e
 ## Calculadora de folletos · armado del archivo
 
 Calcula anchos y guías; no calcula precios ni envía cotizaciones.
-Lectura hebrea (por defecto) y española; tríptico/cuadríptico envolvente,
-Z/acordeón, y ventana cerrada de cuatro paneles. Muestra ambas caras.
+Lectura hebrea (por defecto) y española; díptico, tríptico y cuadríptico.
+El díptico usa pliegue central; también hay envolvente, Z/acordeón y ventana
+cerrada de cuatro paneles. Muestra ambas caras.
 
 ## Convenciones contrastadas
 
@@ -20,6 +21,7 @@ Distribuciones para lectura española, de izquierda a derecha:
 
 | Plegado | Cara A | Cara B |
 | --- | --- | --- |
+| Díptico, 2 | Contratapa / Tapa | Interior de tapa / Interior de contratapa |
 | Envolvente, 3 | Solapa / Contratapa / Tapa | Interior de tapa / Interior de contratapa / Interior de solapa |
 | Envolvente, 4 | Solapa 2 / Solapa 1 / Contratapa / Tapa | Interiores correspondientes, en orden físico inverso |
 | Z, 3 | Interiores / Tapa al extremo derecho | Interiores / Contratapa al extremo derecho |
@@ -39,6 +41,7 @@ abierta sin el cierre central (que tiene otra medida cerrada y otra tapa).
 X es el ancho cerrado; d es la reducción editable de imprenta (2 mm por
 defecto, orientativos). En orientación hebrea:
 
+- Díptico: X / X; abierto = 2X, sin solapas ni reducción.
 - Envolvente 3: X / X / X−d; abierto = 3X−d.
 - Envolvente 4: X / X / X−d / X−2d; abierto = 4X−3d.
 - Acordeón: todos X; abierto = nX, sin reducción.

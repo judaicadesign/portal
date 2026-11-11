@@ -10,10 +10,10 @@
   <link rel="stylesheet" href="../pdf/pdf.css?v=20261109-ui"><link rel="stylesheet" href="https://use.typekit.net/ydp7axr.css?v=20261008-bold">
   <style>
     :root{
-      --teal:#26696e;
+      --teal:#007681;
       --teal-dark:#1c5155;
       --teal-soft:#EAF4F3;
-      --gold:#b69b76;
+      --gold:#9A7F61;
       --gold-soft:#F8F0E1;
       --ink:#193234;
       --muted:#716b62;
@@ -89,12 +89,13 @@
 
     .section-label{
       margin:0 0 10px;
-      font-family:var(--serif);
-      font-size:26px;
-      font-weight:400;
-      line-height:1.2;
+      font-family:aktiv-grotesk-ex-hebrew,aktiv-grotesk-extended,aktiv-grotesk-hebrew,sans-serif;
+      font-size:15px;
+      font-weight:600;
+      letter-spacing:1.05px;
+      line-height:1.35;
       text-align:left;
-      color:var(--teal);
+      color:#007681;
     }
 
     .mode-switch{
@@ -341,7 +342,11 @@
 
     .mode-switch small{display:block;font-weight:400;font-size:11px;margin-top:5px;line-height:1.4}
     .fold-switch{grid-template-columns:repeat(3,minmax(0,1fr))}.fold-switch button{padding:14px 8px}
+    .panel-count-switch{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .panel-count-switch button{padding:10px 7px}
+    .fold-switch.is-diptych{grid-template-columns:1fr}
     .fold-switch svg{display:block;width:70px;height:35px;margin:0 auto 10px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .fold-switch .fold-center{display:none}.fold-switch.is-diptych .fold-z{display:none}.fold-switch.is-diptych .fold-center{display:block}
     button:disabled{opacity:.4;cursor:default}.fold-description{font-size:13px;line-height:1.6;color:var(--muted);margin:-8px 0 22px;min-height:40px}
     .layout-tip{border-radius:10px;background:var(--teal-soft);color:var(--teal-dark);font-size:13px;line-height:1.6;padding:14px 16px}
     .face-title{font:400 23px/1.2 var(--serif);color:var(--teal);margin:22px 0 10px}
@@ -353,7 +358,7 @@
     [hidden]{display:none!important}
     @media (max-width:900px){
       h1{font-size:34px;}
-      .section-label,.diagram-title{font-size:24px;}
+       .diagram-title{font-size:24px;}
       .header{padding-bottom:18px;margin-bottom:20px;}
     }
 
@@ -368,7 +373,7 @@
       .panel-rule{font-size:10px;}
       .summary{ grid-template-columns:1fr; }
       .total-chip{ justify-self:start; }
-      .mode-switch{ grid-template-columns:1fr 1fr; }
+      .mode-switch:not(.panel-count-switch){ grid-template-columns:1fr 1fr; }
       .fold-switch{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px}
       .mode-switch button{font-size:12px;padding:10px 8px;min-width:0}.mode-switch small{font-size:10px}
       .fold-switch svg{width:55px;height:30px}.panel-value{font-size:20px}.panel-name{font-size:10px;overflow-wrap:anywhere;min-height:40px}.panel-id{font-size:9px}.panel-rule{font-size:9px}
@@ -378,7 +383,7 @@
     body{padding:0;font-family:"aktiv-grotesk-hebrew",Arial,sans-serif}
     .wrap{width:auto;max-width:1220px;padding:40px 24px 64px}
     .header{background:transparent;color:var(--ink);display:block;padding:0 0 24px;margin-bottom:28px}
-    .header h1{font-size:clamp(42px,6.5vw,76px);line-height:1.05;font-weight:400;color:#1c5155}
+    .header h1{font-size:clamp(42px,6.5vw,76px);line-height:1.05;font-weight:400;color:var(--teal)}
     .header .subtitle{font-size:18px;line-height:1.6;max-width:900px}
     @media(max-width:600px){.wrap{padding:28px 16px 48px}}
   </style>
@@ -402,17 +407,19 @@
         <button id="spanishBtn" type="button" aria-pressed="false">Español <small>De izquierda a derecha</small></button>
       </div>
       <h2 class="section-label">2 · Tipo de folleto</h2>
-      <div class="mode-switch" role="group" aria-label="Tipo de folleto">
-        <button id="triBtn" type="button" aria-pressed="false">Tríptico · 3 paneles</button>
-        <button id="quadBtn" class="active" type="button" aria-pressed="true">Cuadríptico · 4 paneles</button>
+      <div class="mode-switch panel-count-switch" role="group" aria-label="Tipo de folleto y cantidad de paneles">
+        <button id="quadBtn" class="active" type="button" aria-pressed="true">Cuadríptico · 4 paneles<small>Original</small></button>
+        <button id="triBtn" type="button" aria-pressed="false">Tríptico · 3 paneles<small>Eliminar 1 panel</small></button>
+        <button id="diBtn" type="button" aria-pressed="false">Díptico · 2 paneles<small>Eliminar 2 paneles</small></button>
       </div>
+      <p id="panel-count-help" class="helper">Al quitar paneles se conserva el ancho individual de cada panel (X); cambia el ancho total abierto. Ejemplo en acordeón: 540 mm → 405 mm → 270 mm. En envolvente se mantienen las reducciones que correspondan a las solapas.</p>
       <h2 class="section-label">3 · ¿Cómo se dobla?</h2>
-      <div class="mode-switch fold-switch" role="group" aria-label="Tipo de plegado">
+      <div id="foldSwitch" class="mode-switch fold-switch" role="group" aria-label="Tipo de plegado">
         <button id="rollBtn" class="active" type="button" aria-pressed="true"><svg viewBox="0 0 90 40" aria-hidden="true"><path d="M8 33H80V8H22v16h45v-7H36"/></svg><span>Envolvente</span><small>Solapas hacia adentro</small></button>
-        <button id="accordionBtn" type="button" aria-pressed="false"><svg viewBox="0 0 90 40" aria-hidden="true"><path d="m6 31 24-22 27 22 27-22"/></svg><span id="accordion-name">Acordeón · zigzag</span><small>Pliegues alternados</small></button>
+        <button id="accordionBtn" type="button" aria-pressed="false"><svg id="accordion-icon" viewBox="0 0 90 40" aria-hidden="true"><path class="fold-z" d="m6 31 24-22 27 22 27-22"/><path class="fold-center" d="M8 6H82V34H8ZM45 6V34"/></svg><span id="accordion-name">Acordeón · zigzag</span><small id="accordion-description">Pliegues alternados</small></button>
         <button id="gateBtn" type="button" aria-pressed="false"><svg viewBox="0 0 90 40" aria-hidden="true"><path d="M45 33H8V9h30m7 24h37V9H52M45 33V19"/></svg><span>Ventana cerrada</span><small>Doble puerta + cierre al medio</small></button>
       </div>
-      <p id="gate-help" class="helper" hidden>Ventana con cierre central: disponible en cuadrípticos.</p>
+      <p id="gate-help" class="helper" hidden>Ventana con cierre central: disponible solo en cuadrípticos.</p>
       <p id="fold-description" class="fold-description"></p>
       <p id="selection-status" class="helper" role="status" aria-live="polite"></p>
       <h2 class="section-label">4 · ¿Qué medida conocés?</h2>
@@ -480,7 +487,7 @@
     <footer>Judaica Design® · Herramienta para maquetación</footer>
   </main>
 
-  <script src="../calculator.js?v=20261109-validation"></script>
+  <script src="../calculator.js?v=20261111-diptych-panel-removal"></script>
 <script src="../jd-embed.js?v=20261023-header"></script>
 </body>
 </html>
