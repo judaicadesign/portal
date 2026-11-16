@@ -1,13 +1,19 @@
-# Judaica Design® · Brand Kit cromático y tipográfico v2026-11-16
+# Judaica Design® — Brand Kit definitivo (16/11/2026)
+**ESTADO: CERRADO.** Fuente de verdad: https://judaicadesign.github.io/judaica-design-system/brandkit/ ; repositorio privado `judaicadesign/jd-sistema-privado/docs/brandkit-paleta-b-2026-11-16.md`.
 
-Fuente de verdad: `judaicadesign/jd-sistema-privado/docs/brandkit-paleta-b-2026-11-16.md`.
+## 8 colores de uso
+Celeste JUDAICA `#18666B` (único teal principal); Old Gold `#9A7F61`; Gold claro `#B8A681`; Gold suave de relleno `#C3B497`; Marfil `#FFFDF8`; Arena `#E2DACB`; Carbón `#193234`; Taupe `#615D55`.
 
-**Ocho colores base:** Teal institucional `#007681`; Celeste JUDAICA profundo `#18666B`; Old Gold institucional `#9A7F61`; Gold claro `#B8A681`; Marfil `#FFFDF8`; Arena `#E2DACB`; Carbón `#193234`; Taupe `#615D55`.
+El antiguo teal **`#007681` queda ARCHIVADO**, no usar en diseños nuevos, componentes, selectores ni gradientes. Gris `#E5E5E7` solo para bloque legales del PDF, no novena muestra.
 
-**Funciones:** marfil y arena para superficies; carbón y taupe para lectura; teal para CTA e interacción; teal profundo para títulos/texto destacado; oro para acentos. Gold no debe usarse como texto pequeño sobre marfil. Sobre arena, usar carbón o teal profundo. No sustituir colores originales de trabajos de clientes ni marcas ajenas.
+## 3 degradados
+```css
+--jd-gradient-teal:linear-gradient(90deg,#193234 0%,#18666B 53%,#193234 100%);
+--jd-gradient-gold:linear-gradient(90deg,#9A7F61 0%,#B8A681 100%);
+--jd-gradient-gold-warm:linear-gradient(90deg,#B8A681 0%,#9A7F61 55%,#B8A681 100%);
+```
 
-**Tipografía:** Libre Caslon Condensed serif para títulos editoriales y hero; Aktiv Grotesk Hebrew/Extended sans para lecturas, botones, navegación, metadatos y herramientas. Respetar fallback, zoom y soporte RTL/hebreo.
+## Tipografías y roles
+Serif Libre Caslon Condensed 400–500 para títulos/editorial/hero. Sans Aktiv Grotesk Hebrew/Extended 400/600/700 para lectura, cifras, controles y hebreo/RTL. H1 36–48, H2 24–32, cuerpo 16–18, controles 14–16 px; contraste WCAG AA. Fondo marfil/arena, texto carbón/taupe, CTA/titulares Celeste JUDAICA, filetes gold. Gold suave #C3B497 para fondos con texto negro. Legales gris editorial solo en presupuestos. No sustituir arte aprobado ni colores ajenos; exportar y verificar.
 
-**Degradados de identidad:** teal `#18666B → #007681 → #18666B`; gold `#9A7F61 → #B8A681`; gold alternativo `#B8A681 → #9A7F61 → #B8A681`. Son efectos derivados, no colores adicionales.
-
-**Accesibilidad:** WCAG AA (texto normal 4.5:1; grande e interfaces 3:1); estados de error/éxito no dependerán solo de color. El CSS original puede tener estilos históricos para documentos: no reinterpretar arte aprobado.
+Para actualizar carruseles, utilizar la página canónica y preservación de proyectos antiguos. Esta copia es un puntero de sincronización: no elaborar paletas alternativas.
